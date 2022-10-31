@@ -4,8 +4,7 @@ pragma solidity ^0.8.13;
 import "protocol/plugins/assets/AbstractCollateral.sol";
 import "protocol/plugins/assets/OracleLib.sol";
 import "protocol/libraries/Fixed.sol";
-import "protocol/plugins/assets/ICToken.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import "openzeppelin/utils/math/Math.sol";
 
 /**
  * @title UCRV
@@ -19,6 +18,8 @@ contract UCRV is Collateral {
     AggregatorV3Interface public immutable targetUnitChainlinkFeed;
     uint192 public prevReferencePrice; // previous rate, {collateral/reference}
     address public immutable comptrollerAddr;
+    address private constant uCRVAddr =
+        "0x83507cc8C8B67Ed48BADD1F59F684D5d02884C81";
 
     int8 public immutable referenceERC20Decimals;
 
@@ -72,5 +73,14 @@ contract UCRV is Collateral {
                 .price(oracleTimeout)
                 .mul(chainlinkFeed.price(oracleTimeout))
                 .mul(refPerTok());
+    }
+
+    // {ref/tok}
+    function refPerTok() public view override returns (uint192) {
+        // 1. Get totalSupply of uCRV
+        // 2. (_shares * totalUnderlying) / totalSupply
+        // _shares = 1e18???
+        // totalUnderlying call uCRV contract
+        // totalSupply call uCRV contract
     }
 }
