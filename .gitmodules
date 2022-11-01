@@ -10,3 +10,6 @@
 [submodule "lib/union_contracts"]
 	path = lib/union_contracts
 	url = https://github.com/convex-community/union_contracts
+[submodule "lib/curve-pool-registry"]
+	path = lib/curve-pool-registry
+	url = https://github.com/curvefi/curve-pool-registry
