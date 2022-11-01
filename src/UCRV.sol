@@ -5,6 +5,7 @@ import "protocol/plugins/assets/AbstractCollateral.sol";
 import "protocol/plugins/assets/OracleLib.sol";
 import "protocol/libraries/Fixed.sol";
 import "openzeppelin/utils/math/Math.sol";
+import {UnionVault} from "union/UnionVault.sol";
 
 /**
  * @title UCRV
@@ -18,8 +19,10 @@ contract UCRV is Collateral {
     AggregatorV3Interface public immutable targetUnitChainlinkFeed;
     uint192 public prevReferencePrice; // previous rate, {collateral/reference}
     address public immutable comptrollerAddr;
-    address private constant uCRVAddr =
+    UnionVault private constant unionValut =
         "0x83507cc8C8B67Ed48BADD1F59F684D5d02884C81";
+    address constant cvxCRVFactoryPool =
+        "0x9D0464996170c6B9e75eED71c68B99dDEDf279e8";
 
     int8 public immutable referenceERC20Decimals;
 
@@ -72,15 +75,18 @@ contract UCRV is Collateral {
             targetUnitChainlinkFeed
                 .price(oracleTimeout)
                 .mul(chainlinkFeed.price(oracleTimeout))
-                .mul(refPerTok());
+                .mul(
+                    // Instead of being able to call chainlinkFeed here we may have to get the cvxCRV/CRV exchange rate from Curve?.
+                    refPerTok()
+                );
     }
 
     // {ref/tok}
     function refPerTok() public view override returns (uint192) {
-        // 1. Get totalSupply of uCRV
-        // 2. (_shares * totalUnderlying) / totalSupply
-        // _shares = 1e18???
-        // totalUnderlying call uCRV contract
-        // totalSupply call uCRV contract
+        uint256 totalUnderlying = unionVault.totalUnderlying();
+        uint256 totalSupply = unionVault.totalSupply();
+        uint256 rate = (totalUnderlying * 1e18) / totalSupply;
+        int8 shiftLeft = 8 - referenceERC20Decimals - 18;
+        return shiftl_toFix(rate, shiftLeft);
     }
 }
