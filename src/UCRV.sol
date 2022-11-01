@@ -6,6 +6,7 @@ import "protocol/plugins/assets/OracleLib.sol";
 import "protocol/libraries/Fixed.sol";
 import "openzeppelin/utils/math/Math.sol";
 import {UnionVault} from "union/UnionVault.sol";
+import {IExchangeRegistry} from "./interfaces/IExchangeRegistry.sol";
 
 /**
  * @title UCRV
@@ -21,8 +22,11 @@ contract UCRV is Collateral {
     address public immutable comptrollerAddr;
     UnionVault private constant unionValut =
         "0x83507cc8C8B67Ed48BADD1F59F684D5d02884C81";
-    address constant cvxCRVFactoryPool =
-        "0x9D0464996170c6B9e75eED71c68B99dDEDf279e8";
+    IExchangeRegistry constant crvExchange =
+        "0x55B916Ce078eA594c10a874ba67eCc3d62e29822";
+    address constant cvxCRVPool = "0x9D0464996170c6B9e75eED71c68B99dDEDf279e8";
+    address constant crv = "0xD533a949740bb3306d119CC777fa900bA034cd52";
+    address constant cvxCRV = "0x62B9c7356A2Dc64a1969e19C23e4f579F9810Aa7";
 
     int8 public immutable referenceERC20Decimals;
 
@@ -71,14 +75,17 @@ contract UCRV is Collateral {
 
     function strictPrice() public view virtual override returns (uint192) {
         // {UoA/tok} = {UoA/target} * {target/ref} * {ref/tok}
+        uint256 cvxCRVToCRVRate = crvExchange.get_exchange_amount(
+            cvxCRVPool,
+            cvxCRV,
+            crv,
+            1e18
+        );
         return
             targetUnitChainlinkFeed
                 .price(oracleTimeout)
-                .mul(chainlinkFeed.price(oracleTimeout))
-                .mul(
-                    // Instead of being able to call chainlinkFeed here we may have to get the cvxCRV/CRV exchange rate from Curve?.
-                    refPerTok()
-                );
+                .mul(cvxCRVToCRVRate)
+                .mul(refPerTok());
     }
 
     // {ref/tok}

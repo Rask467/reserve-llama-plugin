@@ -3,3 +3,4 @@ forge-std/=lib/forge-std/src/
 protocol/=lib/protocol/contracts/
 openzeppelin/=lib/openzeppelin-contracts/contracts/
 union/=lib/union_contracts/contracts/
+curve/=lib/curve-pool-registry/contracts/
